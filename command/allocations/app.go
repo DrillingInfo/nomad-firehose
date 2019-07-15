@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Drillinginfo/nomad-firehose/sink"
 	nomad "github.com/hashicorp/nomad/api"
-	"github.com/seatgeek/nomad-firehose/sink"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,6 +29,7 @@ type AllocationUpdate struct {
 	ClientStatus       string
 	ClientDescription  string
 	JobID              string
+	JobMeta            map[string]string
 	GroupName          string
 	TaskName           string
 	EvalID             string
@@ -175,6 +176,12 @@ func (f *Firehose) watch() {
 						newMax = taskEvent.Time
 					}
 
+					jobInfo, _, err := f.nomadClient.Jobs().Info(allocation.JobID, q)
+					if err != nil {
+						log.Errorf("unable to find job: %v", err)
+						continue
+					}
+
 					payload := &AllocationUpdate{
 						Name:               allocation.Name,
 						NodeID:             allocation.NodeID,
@@ -185,6 +192,7 @@ func (f *Firehose) watch() {
 						ClientStatus:       allocation.ClientStatus,
 						ClientDescription:  allocation.ClientDescription,
 						JobID:              allocation.JobID,
+						JobMeta:            jobInfo.Meta,
 						GroupName:          allocation.TaskGroup,
 						TaskName:           taskName,
 						TaskEvent:          taskEvent,
