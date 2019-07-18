@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Drillinginfo/nomad-firehose/sink"
 	nomad "github.com/hashicorp/nomad/api"
-	"github.com/seatgeek/nomad-firehose/sink"
 	log "github.com/sirupsen/logrus"
 )
 
