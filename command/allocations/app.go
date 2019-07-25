@@ -166,6 +166,7 @@ func (f *Firehose) watch() {
 
 		// Iterate allocations and find events that have changed since last run
 		for _, allocation := range allocations {
+
 			for taskName, taskInfo := range allocation.TaskStates {
 				for _, taskEvent := range taskInfo.Events {
 					if taskEvent.Time <= f.lastChangeTime {
@@ -175,11 +176,13 @@ func (f *Firehose) watch() {
 					if taskEvent.Time > newMax {
 						newMax = taskEvent.Time
 					}
-
-					jobInfo, _, err := f.nomadClient.Jobs().Info(allocation.JobID, q)
+					jq := &nomad.QueryOptions{
+						AllowStale: true,
+					}
+					jobInfo, _, err := f.nomadClient.Jobs().Info(allocation.JobID, jq)
 					if err != nil {
 						log.Errorf("unable to find job: %v", err)
-						continue
+						jobInfo.Meta = make(map[string]string)
 					}
 
 					payload := &AllocationUpdate{
